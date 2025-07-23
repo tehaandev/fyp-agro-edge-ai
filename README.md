@@ -1,10 +1,10 @@
 ### 🎓 Final Year Project Summary
 
-**Title**: _Edge-Based Machine Learning Solution for Real-Time Decision Support in Small-Scale Farms_
-**Author**: Tehaan Perera
-**University**: University of Staffordshire
-**Supervisor**: Dr. Tharanga Peiris
-**Degree**: BSc (Hons) in Computer Science
+- **Title**: _Edge-Based Machine Learning Solution for Real-Time Decision Support in Small-Scale Farms_
+- **Author**: Tehaan Perera
+- **University**: University of Staffordshire
+- **Supervisor**: Dr. Tharanga Peiris
+- **Degree**: BSc (Hons) in Computer Science
 
 ---
 
