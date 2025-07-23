@@ -9,3 +9,10 @@ __pycache__/
 *.csv
 data/
 *.json
+*.jpg
+*.JPG
+
+# models
+models
+*.h5
+*.tflite
