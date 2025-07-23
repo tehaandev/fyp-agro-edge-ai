@@ -1,0 +1,11 @@
+# python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+
+# data
+*.csv
+data/
+*.json
