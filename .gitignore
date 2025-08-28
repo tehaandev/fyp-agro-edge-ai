@@ -16,6 +16,3 @@ data/
 models
 *.h5
 *.tflite
-
-# logs
-logs
