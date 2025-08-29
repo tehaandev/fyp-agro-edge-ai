@@ -15,3 +15,5 @@ data/
 models
 *.h5
 *.tflite
+
+temp_augmented_healthy
