@@ -3,7 +3,7 @@ import shutil
 import random
 from pathlib import Path
 
-SOURCE = Path("data/raw/CCMT/augmented")
+SOURCE = Path("data/raw/CCMT")
 DEST = Path("data/processed/CCMT_Binary")
 SPLIT = {'train': 0.7, 'val': 0.15, 'test': 0.15}
 
