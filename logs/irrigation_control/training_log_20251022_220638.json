@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-10-22T22:06:38.122132",
+  "model_info": {
+    "model_type": "DecisionTree",
+    "model_name": "DecisionTree_Original_Config1",
+    "model_file": "irrigation_control_model_20251022_220638.pkl",
+    "model_size_mb": 0.003025054931640625,
+    "hyperparameters": {
+      "max_depth": 10,
+      "min_samples_split": 5,
+      "criterion": "gini"
+    },
+    "data_version": "Original"
+  },
+  "dataset_info": {
+    "train_samples": 7004,
+    "test_samples": 1752,
+    "num_features": 222,
+    "num_classes": 3,
+    "class_distribution": {
+      "train": {
+        "No_Irrigation": 
