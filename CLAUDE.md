@@ -4,309 +4,288 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Edge-Based ML Solution for Real-Time Decision Support in Small-Scale Farms. This is a Final Year Project developing lightweight ML models optimized for Raspberry Pi 4B deployment, targeting smallholder farms (<2 hectares) that lack reliable internet connectivity.
+Edge-Based ML Solution for Real-Time Decision Support in Small-Scale Farms. Final Year Project developing lightweight ML models optimized for Raspberry Pi 4B deployment, targeting smallholder farms (<2 hectares) in Sri Lanka that lack reliable internet connectivity.
 
 **Target Hardware**: Raspberry Pi 4B (4GB RAM, ARM Cortex-A72 CPU, <5W power consumption)
 
-## Key Performance Targets
+**Performance Targets**: <1s inference, ≤5W power, <50MB per model, >95% accuracy
 
-- Inference latency: <1 second per prediction
-- Power consumption: ≤5W on Raspberry Pi
-- Model size: Edge-friendly (<50MB per model)
-- Test accuracy: >95% across all models
+## Current Project Status (Nov 2, 2025)
 
-## Project Structure
+### ✅ Production-Ready Models
 
-```
-├── data/                    # Data directories (gitignored)
-│   ├── raw/                # Original datasets (PlantVillage, CCMT, irrigation.csv)
-│   ├── processed/          # Train/val/test splits
-│   └── custom/             # Test images for validation
-├── models/                  # Trained models (gitignored)
-├── logs/                    # Training logs and metrics (JSON format)
-│   ├── disease_detection/
-│   └── irrigation_control/
-├── notebooks/              # Jupyter notebooks for ML experimentation
-│   ├── 0_poc.ipynb        # Proof of concept - integrated system demo
-│   ├── 1_disease_detection.ipynb  # Plant disease detection (binary classification)
-│   └── 2_irrigation_control.ipynb # Irrigation control (decision tree)
-├── scripts/                # Dataset preparation and utilities
-└── src/                    # Production code (minimal - mostly notebooks)
-```
+1. **Disease Detection**: MobileNetV2 → TFLite (98% accuracy, 9.1 MB)
+2. **Irrigation Control**: RandomForest (97.89% accuracy, 50 KB)
+   - **Critical**: RandomForest was chosen over DecisionTree's 100% accuracy due to overfitting concerns
+   - See `docs/MODEL_SELECTION_RATIONALE.md` for detailed justification
 
-## Three ML Pipelines
+### 🎯 Next Priority
 
-### 1. Disease Detection (Binary Classification)
-- **Model**: MobileNetV2 (frozen) + custom dense layers
-- **Framework**: TensorFlow → TensorFlow Lite
-- **Input**: 224x224 RGB images (configurable via IMG_SIDE_LENGTH)
-- **Output**: Binary classification (Healthy/Diseased)
-- **Datasets**: PlantVillage (multi-class), CCMT (cassava)
-- **Current performance**: ~98% accuracy, 9.1MB model size
-- **Notebook**: `notebooks/1_disease_detection.ipynb`
+Integrate irrigation model into `notebooks/0_poc.ipynb` to demonstrate complete multi-model system.
 
-### 2. Irrigation Control (Decision Tree)
-- **Model**: sklearn DecisionTreeClassifier
-- **Input**: Soil Moisture, Temperature, Air Humidity (tabular data)
-- **Output**: Pump ON/OFF
-- **Dataset**: `data/raw/irrigation.csv`
-- **Current performance**: >99% accuracy
-- **Notebook**: `notebooks/2_irrigation_control.ipynb`
-
-### 3. Crop Recommendation
-- **Status**: Simple rule-based logic (in POC)
-- **Input**: Season, soil type
-- **Output**: Crop suggestions
-- **Future**: ML-based recommendation system
-
-## Development Workflow
-
-### Environment Setup
+## Development Environment Setup
 
 ```bash
 # Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Install dependencies
+# Install dependencies (TensorFlow, scikit-learn, OpenCV, etc.)
 pip install -r requirements.txt
-```
 
-### Working with Jupyter Notebooks
-
-All ML development happens in Jupyter notebooks:
-
-```bash
-# Start Jupyter
+# Launch Jupyter for notebook-based development
 jupyter notebook
-
-# Or use VS Code with Jupyter extension
-code notebooks/
 ```
 
-**Important**: Notebooks contain both experimentation and training. Each notebook includes:
+## Notebook-Based Development Workflow
+
+**All ML development happens in Jupyter notebooks, not scripts.** Each notebook is self-contained with:
 - Data loading and preprocessing
-- Data augmentation (for disease detection)
-- Model training with callbacks (EarlyStopping, ReduceLROnPlateau)
+- Model training with hyperparameters
 - Evaluation and metrics
-- Training log generation (saved to `logs/`)
-- TFLite conversion (for edge deployment)
+- Model export (TFLite for images, pickle for tabular)
+- Automated training log generation (JSON format in `logs/`)
 
-### Dataset Preparation Scripts
+### Key Notebooks (Execution Order)
 
-Located in `scripts/`, these handle dataset splitting and merging:
+1. **`notebooks/1_disease_detection.ipynb`** - Binary image classification (Healthy/Diseased)
+   - MobileNetV2 transfer learning → TFLite conversion
+   - Data augmentation: RandomFlip, RandomRotation, RandomZoom, RandomBrightness
+   - Input: 224×224 RGB → configurable via `IMG_SIDE_LENGTH`
+
+2. **`notebooks/3_irrigation_preprocessing.ipynb`** - Feature engineering pipeline
+   - Transforms raw sensor data (5 features) → 37 engineered features
+   - Rolling statistics (3h/6h/12h), change rates (1h/3h), time/seasonal features
+   - Intelligent multi-class labeling: Irrigate_High, Irrigate_Low, No_Irrigation
+   - 6-hour sliding window approach, 80/20 chronological split
+
+3. **`notebooks/4_irrigation_model_comparison.ipynb`** - Model selection
+   - Compares DecisionTree (100% acc), RandomForest (97.89%), LogisticRegression
+   - Handles class imbalance via SMOTE + class weighting
+   - **Important**: DecisionTree's 100% was rejected as overfitting
+
+4. **`notebooks/5_irrigation_rf_deployment.ipynb`** - Production model
+   - Trains RandomForest Config1 (50 trees, max_depth=10)
+   - Feature importance analysis, confusion matrices
+   - Saves `models/irrigation_rf_final.pkl` + deployment metadata
+
+5. **`notebooks/0_poc.ipynb`** - Proof of concept demo
+   - **Current**: Disease detection only
+   - **Next**: Add irrigation control section (Priority 1)
+   - Simulates Pi 4B constraints (3.2GB RAM, 4-core CPU threading)
+
+## Loading Production Models
+
+### Disease Detection (TFLite)
+```python
+import tensorflow as tf
+
+# Load TFLite model
+interpreter = tf.lite.Interpreter(model_path="models/plant_disease__binary_model.tflite")
+interpreter.allocate_tensors()
+
+# Preprocess: resize to 224×224, normalize to [0,1]
+image_array = np.expand_dims(image_array, axis=0) / 255.0
+
+# Predict
+interpreter.set_tensor(input_details[0]['index'], image_array)
+interpreter.invoke()
+prediction = interpreter.get_tensor(output_details[0]['index'])[0][0]
+```
+
+### Irrigation Control (RandomForest)
+```python
+import pickle
+import numpy as np
+
+# Load model + preprocessing artifacts
+with open('models/irrigation_rf_final.pkl', 'rb') as f:
+    model = pickle.load(f)
+with open('data/processed/irrigation/scaler.pkl', 'rb') as f:
+    scaler = pickle.load(f)
+
+# Input: (1, 222) - 6-hour window × 37 features (already scaled)
+prediction = model.predict(X_test[0:1])[0]  # Returns: 'Irrigate_High', 'Irrigate_Low', or 'No_Irrigation'
+probabilities = model.predict_proba(X_test[0:1])[0]
+```
+
+## Data Pipeline Architecture
+
+### Image Data (Disease Detection)
+- **Datasets**: PlantVillage (multi-class), CCMT (cassava) in `data/raw/`
+- **Preprocessing**: Binary classification (Healthy vs all Diseased classes merged)
+- **Splits**: 80% train, 10% val, 10% test via `scripts/split_dataset_binary.py`
+- **Augmentation**: Applied during training via `tf.keras.Sequential` layers
+
+### Tabular Data (Irrigation)
+- **Dataset**: `data/raw/soil_and_rain_data.csv` (8,761 hourly readings)
+- **Raw features**: Humidity, Atmospheric_Temp, Soil_Temp, Soil_Moisture, Dew_Point
+- **Engineered features** (37 total):
+  - Rolling statistics: 3h/6h/12h means and stds for moisture/humidity/temp
+  - Change rates: 1h/3h differences (captures drying/wetting trends)
+  - Time features: hour_of_day, day_of_week, is_daytime (06:00-18:00), cyclical encoding (hour_sin, hour_cos)
+  - Seasonal: is_yala_season (May-Aug vs Sep-Mar for Sri Lankan agriculture)
+  - Rainfall proxy: humidity_spike (>10% increase/hour), recent_rain (spike in last 3h)
+- **Windowing**: 6-hour sliding window (stride=1h) → 222 features (6 × 37)
+- **Scaling**: StandardScaler (saved as `scaler.pkl` for deployment)
+- **Split**: Chronological 80/20 (prevents temporal leakage)
+
+## Intelligent Irrigation Labeling Logic
+
+The multi-class labels are generated programmatically using domain-aware rules:
+
+```
+Priority 1: Recent rainfall → No_Irrigation (prevents over-irrigation)
+Priority 2: Soil moisture + Temperature + Time of day
+  - Very dry (<P25) + Hot (>P75) + Midday (9-15h) → Irrigate_Low (avoid leaf scorch)
+  - Very dry (<P25) + Hot (>P75) + Non-midday → Irrigate_High
+  - Moderately dry (P25-P50) → Irrigate_Low
+  - Sufficient (>P50) → No_Irrigation
+```
+
+This context-aware approach considers:
+- Water efficiency (post-rain prevention)
+- Plant physiology (midday irrigation stress avoidance)
+- Adaptive thresholds (quantile-based, not hardcoded)
+
+## Model Selection Decision (Critical)
+
+**RandomForest was chosen over DecisionTree despite lower accuracy:**
+
+| Model | Test Accuracy | F1-score | Features Used | Production Risk |
+|-------|--------------|----------|---------------|-----------------|
+| DecisionTree | 100.00% | 100.00% | 3 (98.65% weight) | ⚠️ HIGH (overfitting) |
+| RandomForest | 97.89% | 92.22% | 10+ distributed | ✅ LOW (ensemble robust) |
+
+**Rationale**: 100% accuracy on real sensor data indicates overfitting/data leakage. RandomForest provides:
+- Ensemble robustness (50 trees, majority voting)
+- Broader feature utilization (reduces brittleness)
+- Production reliability (graceful degradation under noise)
+- Still edge-compatible (0.146 ms << 1000 ms target)
+
+See `docs/MODEL_SELECTION_RATIONALE.md` for full analysis. This decision demonstrates production mindset and is a strong FYP defense point.
+
+## Training Log Format
+
+All training runs generate JSON logs in `logs/{model_type}/training_log_{timestamp}.json`:
+
+```json
+{
+  "timestamp": "ISO format",
+  "model_info": {"model_type": "...", "hyperparameters": {...}},
+  "dataset_info": {"train_samples": int, "class_distribution": {...}},
+  "performance_metrics": {
+    "test_accuracy": float,
+    "test_f1_macro": float,
+    "per_class_metrics": {...},
+    "confusion_matrix": [[...]]
+  },
+  "efficiency_metrics": {
+    "train_time_seconds": float,
+    "inference_time_ms_per_sample": float,
+    "edge_compatible": bool
+  },
+  "feature_importance": {"top_10_features": [...]}
+}
+```
+
+**Before retraining**: Always review existing logs to understand previous hyperparameter choices.
+
+## Dataset Preparation Scripts
+
+Located in `scripts/` for splitting and merging datasets:
 
 ```bash
-# Split PlantVillage dataset (multi-class → train/val/test)
-python scripts/split_dataset.py
+# Binary classification splits (Healthy vs Diseased)
+python scripts/split_dataset_binary.py        # PlantVillage
+python scripts/split_dataset_binary_ccmt.py   # CCMT cassava
 
-# Split for binary classification (Healthy vs Diseased)
-python scripts/split_dataset_binary.py
-
-# Split CCMT dataset (cassava)
-python scripts/split_dataset_ccmt.py
-python scripts/split_dataset_binary_ccmt.py
-
-# Merge multiple datasets for binary classification
+# Merge multiple datasets
 python scripts/merge_datasets_binary.py
-
-# Move augmented data
-python scripts/move_augmented_ccmt.py
 
 # Test GPU availability
 python scripts/gpu_test.py
 ```
 
-**Dataset conventions**:
-- Source datasets go in `data/raw/`
-- Processed datasets (split) go in `data/processed/`
-- Standard split: 80% train, 10% val, 10% test
-- Binary classification: all non-healthy classes → "Diseased" class
+Conventions:
+- Source datasets: `data/raw/`
+- Processed splits: `data/processed/` (80/10/10 or 80/20)
+- Use `random_state=42` for reproducibility
 
-### Training Models
+## Edge Deployment Constraints
 
-Training is done via notebooks, not standalone scripts:
-
-1. Open relevant notebook (`notebooks/1_disease_detection.ipynb` or `notebooks/2_irrigation_control.ipynb`)
-2. Adjust hyperparameters in the configuration cells at the top
-3. Run all cells sequentially
-4. Models are saved to `models/`
-5. Training logs are saved to `logs/{model_type}/training_log_{timestamp}.json`
-
-**Disease Detection Hyperparameters** (configurable):
-- `BATCH_SIZE`: Default 32
-- `IMG_SIDE_LENGTH`: Default 128 (affects model input size)
-- `EPOCHS`: Default 30 (early stopping may reduce this)
-- `LR`: Learning rate, default 1e-4
-- `LABEL_MODE`: 'binary' for binary classification
-
-**Irrigation Control Hyperparameters**:
-- `MAX_DEPTH`: Default 5 (None for unlimited)
-- `MAX_SAMPLE_SPLIT`: Default 2
-- `MIN_SAMPLE_LEAF`: Default 1
-- `CRITERION`: 'gini' or 'entropy'
-
-### TensorFlow Lite Conversion
-
-Disease detection models are automatically converted to TFLite at the end of training:
-
+### Raspberry Pi 4B Simulation (in POC)
 ```python
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
-tflite_model = converter.convert()
-with open(f"{PROJECT_DIR}/models/plant_disease__binary_model.tflite", "wb") as f:
-    f.write(tflite_model)
+import resource
+import tensorflow as tf
+
+# Memory limit: 3.2GB (Pi 4B usable RAM)
+memory_limit_gb = 3.2
+memory_limit_bytes = int(memory_limit_gb * 1024**3)
+resource.setrlimit(resource.RLIMIT_AS, (memory_limit_bytes, memory_limit_bytes))
+
+# CPU threading: 4 cores (ARM Cortex-A72)
+tf.config.threading.set_inter_op_parallelism_threads(4)
+tf.config.threading.set_intra_op_parallelism_threads(1)
 ```
 
-### Raspberry Pi Simulation
-
-The POC notebook (`0_poc.ipynb`) simulates Pi 4B constraints:
-
-```python
-def apply_pi4b_constraints():
-    # Memory limited to 3.2GB (Pi 4B usable RAM)
-    memory_limit_gb = 3.2
-    resource.setrlimit(resource.RLIMIT_AS, (memory_limit_bytes, memory_limit_bytes))
-
-    # Configure for Pi 4B ARM CPU (4 cores)
-    tf.config.threading.set_inter_op_parallelism_threads(4)
-    tf.config.threading.set_intra_op_parallelism_threads(1)
-```
-
-## Data Architecture
-
-### Image Data (Disease Detection)
-- **PlantVillage**: Multi-class dataset with various plant diseases
-- **CCMT**: Cassava-specific disease dataset
-- **Custom images**: Test images in `data/custom/` for validation
-- **Preprocessing**:
-  - Resize to target size (default 128x128 or 224x224)
-  - Normalize to [0, 1] via `/255.0`
-  - Data augmentation: RandomFlip, RandomRotation, RandomZoom, RandomBrightness, RandomContrast, RandomTranslation, GaussianNoise
-
-### Tabular Data (Irrigation)
-- **irrigation.csv**: Sensor readings (Soil Moisture, Temperature, Air Humidity) → Pump ON/OFF
-- **No scaling required**: Decision tree handles raw sensor values
-- **Stratified split**: Ensures balanced train/test distribution
-
-## Training Logs
-
-All training runs are logged to JSON files in `logs/{model_type}/`:
-
-```json
-{
-  "timestamp": "ISO format",
-  "hyperparameters": { ... },
-  "dataset_info": { ... },
-  "training_time": {
-    "total_seconds": float,
-    "formatted": "HH:MM:SS"
-  },
-  "results": {
-    "final_train_accuracy": float,
-    "final_val_accuracy": float,
-    "test_accuracy": float,
-    "test_f1_score": float,
-    ...
-  },
-  "training_history": { ... }
-}
-```
-
-These logs are critical for tracking experiments and model performance over time.
-
-## Model Optimization
-
-### Current Optimizations
-- **MobileNetV2**: Lightweight base architecture for disease detection
-- **Frozen base model**: Transfer learning with frozen ImageNet weights
-- **TFLite conversion**: Edge-optimized inference
-- **Decision trees**: Inherently lightweight for tabular data
-
-### Future Optimizations (Not Yet Implemented)
-- **Quantization**: Post-training quantization (int8) for TFLite models
-- **Pruning**: Remove low-magnitude weights
-- **Knowledge distillation**: Train smaller student models
+### Performance Validation
+- **Disease detection**: ~10 ms inference (TFLite optimized)
+- **Irrigation control**: 0.146 ms inference (lightweight RandomForest)
+- **Combined system**: <200 ms total (well under 1s target)
 
 ## Git Workflow
 
 ```bash
-# Check status (models, data, images are gitignored)
+# Check status (models/data/images are gitignored)
 git status
 
-# Common workflow
-git add notebooks/ scripts/ README.md requirements.txt
-git commit -m "Descriptive message"
+# Standard workflow
+git add notebooks/ scripts/ docs/ README.md requirements.txt
+git commit -m "Descriptive message
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
 git push origin master
 ```
 
-**Gitignored items**:
-- `data/`, `models/`, `*.h5`, `*.tflite` (large files)
-- `.venv/` (Python virtual environment)
-- `__pycache__/`, `*.pyc` (Python cache)
-- `*.jpg`, `*.JPG`, `*.csv` (datasets and images)
+**Gitignored**: `data/`, `models/`, `*.h5`, `*.tflite`, `.venv/`, `__pycache__/`, `*.jpg`, `*.csv`
 
-## Testing Models
+## Important Development Notes
 
-### Disease Detection
-```python
-from keras.utils import load_img, img_to_array
-import numpy as np
-
-# Load and preprocess image
-image = load_img("path/to/image.jpg", target_size=(128, 128))
-image_array = img_to_array(image)
-image_array = np.expand_dims(image_array, axis=0) / 255.0
-
-# Predict
-predictions = model.predict(image_array)
-predicted_class = (predictions[0][0] > 0.5).astype(int)  # Binary threshold
-```
-
-### Irrigation Control
-```python
-# Example: [Soil Moisture, Temperature, Air Humidity]
-sample = [[700, 30, 65]]
-prediction = clf.predict(sample)
-print("Pump ON" if prediction[0] == 1 else "Pump OFF")
-```
-
-## Key Dependencies
-
-- **tensorflow**: ML framework
-- **keras**: High-level neural networks API
-- **scikit-learn**: Traditional ML algorithms (decision trees)
-- **opencv-python**: Image processing
-- **matplotlib**: Plotting and visualization
-- **pandas**: Tabular data manipulation
-- **jupyter**: Interactive notebooks
-- **psutil**: System resource monitoring
+1. **Notebook-first workflow**: Primary development is in Jupyter, not Python scripts
+2. **Reproducibility**: Always use `random_state=42` for splits and training
+3. **TFLite conversion mandatory**: Disease detection models must export to TFLite
+4. **Class imbalance**: Irrigation has 89% No_Irrigation class - use SMOTE + class weighting
+5. **Model size constraints**: <50MB per model for edge deployment
+6. **Binary classification focus**: Current scope is Healthy/Diseased, not multi-class disease identification
+7. **Temporal data caution**: 6-hour sliding window may cause train/test leakage - RandomForest mitigates this better than DecisionTree
+8. **Production mindset**: Prioritize reliability over theoretical accuracy (97.89% > suspicious 100%)
 
 ## Research Context
 
-- **Target users**: Smallholder farmers in Sri Lanka (<2 hectares)
-- **Problem**: 40% of agricultural output lost due to inefficiencies
-- **Constraints**: No reliable internet, low cost, low technical literacy
-- **Solution**: Offline, edge-based ML models on low-power hardware
-- **Methodology**: RAD (Rapid Application Development), Pragmatism philosophy
-- **Evaluation**: Accuracy, Precision, Recall, F1, inference time, memory footprint, power usage
+**Target users**: Smallholder farmers in Sri Lanka (<2 hectares)
+**Problem**: 40% agricultural output lost due to inefficiencies
+**Constraints**: No reliable internet, low cost, low technical literacy
+**Solution**: Offline edge ML on Raspberry Pi 4B
+**Methodology**: RAD (Rapid Application Development), Pragmatism philosophy
+**Evaluation**: Accuracy, Precision, Recall, F1, inference time, memory footprint, power (<5W)
 
-## Important Notes for Development
+## Key Reference Documents
 
-1. **Always work in notebooks**: The primary development environment is Jupyter notebooks, not standalone Python scripts
-2. **Check training logs**: Before retraining, review existing logs in `logs/` to understand previous hyperparameter choices
-3. **Dataset splits must be reproducible**: Use `random_state=42` for consistency
-4. **TFLite conversion is mandatory**: All disease detection models must be converted to TFLite for edge deployment
-5. **Resource constraints are real**: Always test with Pi 4B simulation constraints applied
-6. **Binary classification**: Current focus is binary (Healthy/Diseased), not multi-class disease identification
-7. **Model size matters**: Keep models under 50MB for edge deployment
-8. **Inference latency is critical**: Target <1s per prediction, ideally <500ms
+- **`DEVELOPMENT_HANDOFF.md`**: Full project context and next steps
+- **`CLAUDE_CODE_CONTEXT.md`**: Quick context for Claude Code sessions
+- **`QUICK_START.md`**: Instant resume instructions
+- **`docs/MODEL_SELECTION_RATIONALE.md`**: Why RandomForest over DecisionTree (critical for FYP defense)
+- **`docs/IRRIGATION_MODEL_SUMMARY.md`**: Model specifications and deployment guide
 
-## Hardware Deployment (Future)
+## Future Hardware Deployment
 
 When deploying to actual Raspberry Pi:
-1. Transfer `.tflite` models to Pi
+1. Transfer TFLite models + RandomForest pickle to Pi
 2. Use TensorFlow Lite runtime (not full TensorFlow)
-3. Connect sensors (soil moisture, temperature, humidity) via GPIO
+3. Connect sensors via GPIO: soil moisture, temperature, humidity
 4. Integrate camera module for disease detection
-5. Run inference loop with sensor readings
-6. Control irrigation pump via relay module
+5. Control irrigation pump via relay module
+6. Run inference loop with hourly sensor readings (6-hour buffer for irrigation)
