@@ -1,0 +1,393 @@
+{
+  "timestamp": "2025-11-02T12:55:02.885260",
+  "model_info": {
+    "model_type": "DecisionTree",
+    "model_name": "DecisionTree_Original_Config1",
+    "model_file": "irrigation_control_model_20251102_125502.pkl",
+    "model_size_mb": 0.003025054931640625,
+    "hyperparameters": {
+      "max_depth": 10,
+      "min_samples_split": 5,
+      "criterion": "gini"
+    },
+    "data_version": "Original"
+  },
+  "dataset_info": {
+    "train_samples": 7004,
+    "test_samples": 1752,
+    "num_features": 222,
+    "num_classes": 3,
+    "class_distribution": {
+      "train": {
+        "No_Irrigation": 6288,
+        "Irrigate_Low": 510,
+        "Irrigate_High": 206
+      },
+      "test": {
+        "No_Irrigation": 1554,
+        "Irrigate_Low": 137,
+        "Irrigate_High": 61
+      }
+    },
+    "preprocessing_metadata": {
+      "dataset": "soil_and_rain_data.csv",
+      "preprocessing_date": "2025-10-22T17:22:22.610759",
+      "original_shape": {
+        "rows": 8761,
+        "cols": 5
+      },
+      "cleaned_shape": {
+        "rows": 8761,
+        "cols": 5
+      },
+      "feature_engineered_shape": {
+        "rows": 8761,
+        "cols": 38
+      },
+      "windowing": {
+        "window_size": 6,
+        "stride": 1,
+        "num_windows": 8756
+      },
+      "split": {
+        "train_size": 7004,
+        "test_size": 1752,
+        "train_date_range": [
+          "2017-06-12 02:00:21+00:00",
+          "2018-03-30 21:00:21+00:00"
+        ],
+        "test_date_range": [
+          "2018-03-30 22:00:21+00:00",
+          "2018-06-11 21:00:21+00:00"
+        ]
+      },
+      "class_distribution": {
+        "train": {
+          "No_Irrigation": 6288,
+          "Irrigate_Low": 510,
+          "Irrigate_High": 206
+        },
+        "test": {
+          "No_Irrigation": 1554,
+          "Irrigate_Low": 137,
+          "Irrigate_High": 61
+        }
+      },
+      "thresholds": {
+        "soil_moisture": {
+          "p25": 52.78826282362125,
+          "p50": 80.63759104940479,
+          "p75": 107.9978281231026
+        },
+        "temperature": {
+          "p50": 13.53849414467891,
+          "p75": 15.173993104386952
+        }
+      }
+    }
+  },
+  "performance_metrics": {
+    "train_accuracy": 1.0,
+    "test_accuracy": 1.0,
+    "test_precision_macro": 1.0,
+    "test_recall_macro": 1.0,
+    "test_f1_macro": 1.0,
+    "cv_accuracy_mean": 0.9990006118078923,
+    "cv_accuracy_std": 0.0003495941296462643,
+    "per_class_metrics": {
+      "Irrigate_High": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Irrigate_Low": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "No_Irrigation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        61,
+        0,
+        0
+      ],
+      [
+        0,
+        137,
+        0
+      ],
+      [
+        0,
+        0,
+        1554
+      ]
+    ]
+  },
+  "efficiency_metrics": {
+    "train_time_seconds": 0.31469058990478516,
+    "inference_time_ms_per_sample": 0.0015950202941894531,
+    "edge_compatible": true
+  },
+  "feature_importance": {
+    "top_10_features": [
+      {
+        "Feature": "recent_rain",
+        "Importance": 0.061705527711198055,
+        "Importance_Pct": 37.02331662671883
+      },
+      {
+        "Feature": "Atmospheric_Temp",
+        "Importance": 0.06118428261428025,
+        "Importance_Pct": 36.710569568568154
+      },
+      {
+        "Feature": "Soil_Moisture",
+        "Importance": 0.041533014176183373,
+        "Importance_Pct": 24.919808505710026
+      },
+      {
+        "Feature": "hour_cos",
+        "Importance": 0.00224384216500494,
+        "Importance_Pct": 1.346305299002964
+      },
+      {
+        "Feature": "Soil_Moisture_rolling_std_12h",
+        "Importance": 3.8803911540295095e-17,
+        "Importance_Pct": 2.328234692417706e-14
+      },
+      {
+        "Feature": "Dew_Point",
+        "Importance": 0.0,
+        "Importance_Pct": 0.0
+      },
+      {
+        "Feature": "Soil_Temp",
+        "Importance": 0.0,
+        "Importance_Pct": 0.0
+      },
+      {
+        "Feature": "Humidity",
+        "Importance": 0.0,
+        "Importance_Pct": 0.0
+      },
+      {
+        "Feature": "Soil_Moisture_rolling_mean_3h",
+        "Importance": 0.0,
+        "Importance_Pct": 0.0
+      },
+      {
+        "Feature": "Soil_Moisture_rolling_std_6h",
+        "Importance": 0.0,
+        "Importance_Pct": 0.0
+      }
+    ]
+  },
+  "all_models_comparison": [
+    {
+      "Model": "DecisionTree_Original_Config1",
+      "Test_Accuracy": 100.0,
+      "Test_F1_Macro": 100.0,
+      "Test_Precision": 100.0,
+      "Test_Recall": 100.0,
+      "CV_Accuracy": 99.90006118078924,
+      "Inference_Time_ms": 0.0015950202941894531,
+      "Train_Time_s": 0.31469058990478516
+    },
+    {
+      "Model": "DecisionTree_Original_Config2",
+      "Test_Accuracy": 100.0,
+      "Test_F1_Macro": 100.0,
+      "Test_Precision": 100.0,
+      "Test_Recall": 100.0,
+      "CV_Accuracy": 99.90006118078924,
+      "Inference_Time_ms": 0.0013136863708496094,
+      "Train_Time_s": 0.33116674423217773
+    },
+    {
+      "Model": "DecisionTree_Original_Config4",
+      "Test_Accuracy": 100.0,
+      "Test_F1_Macro": 100.0,
+      "Test_Precision": 100.0,
+      "Test_Recall": 100.0,
+      "CV_Accuracy": 99.90006118078924,
+      "Inference_Time_ms": 0.0015926361083984375,
+      "Train_Time_s": 0.3895294666290283
+    },
+    {
+      "Model": "DecisionTree_Original_Config3",
+      "Test_Accuracy": 100.0,
+      "Test_F1_Macro": 100.0,
+      "Test_Precision": 100.0,
+      "Test_Recall": 100.0,
+      "CV_Accuracy": 99.90006118078924,
+      "Inference_Time_ms": 0.0014352798461914062,
+      "Train_Time_s": 0.43031740188598633
+    },
+    {
+      "Model": "DecisionTree_SMOTE_Config1",
+      "Test_Accuracy": 97.71689497716895,
+      "Test_F1_Macro": 92.52125062413495,
+      "Test_Precision": 91.03313840155946,
+      "Test_Recall": 94.80143573717822,
+      "CV_Accuracy": 97.74172210372353,
+      "Inference_Time_ms": 0.0013875961303710938,
+      "Train_Time_s": 3.2569985389709473
+    },
+    {
+      "Model": "RandomForest_Original_Config1",
+      "Test_Accuracy": 97.88812785388129,
+      "Test_F1_Macro": 92.22006890611542,
+      "Test_Precision": 91.50505881221946,
+      "Test_Recall": 93.09091395366374,
+      "CV_Accuracy": 97.42997858672376,
+      "Inference_Time_ms": 0.14617919921875,
+      "Train_Time_s": 0.6005451679229736
+    },
+    {
+      "Model": "DecisionTree_SMOTE_Config2",
+      "Test_Accuracy": 97.88812785388129,
+      "Test_F1_Macro": 90.63528958330623,
+      "Test_Precision": 91.25396825396827,
+      "Test_Recall": 91.19079933965658,
+      "CV_Accuracy": 97.94846538965395,
+      "Inference_Time_ms": 0.0013518333435058594,
+      "Train_Time_s": 4.219166278839111
+    },
+    {
+      "Model": "DecisionTree_SMOTE_Config3",
+      "Test_Accuracy": 97.88812785388129,
+      "Test_F1_Macro": 89.9517118422071,
+      "Test_Precision": 91.17063492063492,
+      "Test_Recall": 90.14080320769325,
+      "CV_Accuracy": 98.14459438455802,
+      "Inference_Time_ms": 0.0013828277587890625,
+      "Train_Time_s": 4.611032724380493
+    },
+    {
+      "Model": "RandomForest_SMOTE_Config2",
+      "Test_Accuracy": 96.57534246575342,
+      "Test_F1_Macro": 88.13946205754766,
+      "Test_Precision": 88.31399571136077,
+      "Test_Recall": 89.58815394139074,
+      "CV_Accuracy": 98.89205660917739,
+      "Inference_Time_ms": 0.24173974990844727,
+      "Train_Time_s": 6.015439987182617
+    },
+    {
+      "Model": "RandomForest_SMOTE_Config3",
+      "Test_Accuracy": 96.68949771689498,
+      "Test_F1_Macro": 87.14285729130737,
+      "Test_Precision": 89.13814113215909,
+      "Test_Recall": 87.30920273938102,
+      "CV_Accuracy": 99.28433567860495,
+      "Inference_Time_ms": 0.5051517486572266,
+      "Train_Time_s": 14.344651222229004
+    },
+    {
+      "Model": "RandomForest_Original_Config2",
+      "Test_Accuracy": 96.6324200913242,
+      "Test_F1_Macro": 85.86365835824009,
+      "Test_Precision": 93.96903402878442,
+      "Test_Recall": 79.8851262414742,
+      "CV_Accuracy": 96.50206995003569,
+      "Inference_Time_ms": 0.24445772171020505,
+      "Train_Time_s": 1.214392900466919
+    },
+    {
+      "Model": "RandomForest_SMOTE_Config1",
+      "Test_Accuracy": 94.74885844748859,
+      "Test_F1_Macro": 85.02025933094401,
+      "Test_Precision": 84.16159979476804,
+      "Test_Recall": 88.67989427400698,
+      "CV_Accuracy": 97.34944443960394,
+      "Inference_Time_ms": 0.13997793197631836,
+      "Train_Time_s": 2.385988712310791
+    },
+    {
+      "Model": "DecisionTree_SMOTE_Config4",
+      "Test_Accuracy": 96.97488584474885,
+      "Test_F1_Macro": 84.47265238784931,
+      "Test_Precision": 88.31045003813882,
+      "Test_Recall": 84.54762220467616,
+      "CV_Accuracy": 98.00677021163095,
+      "Inference_Time_ms": 0.0014233589172363281,
+      "Train_Time_s": 7.476457595825195
+    },
+    {
+      "Model": "RandomForest_Original_Config3",
+      "Test_Accuracy": 95.31963470319634,
+      "Test_F1_Macro": 81.57610519683419,
+      "Test_Precision": 93.49614946908687,
+      "Test_Recall": 74.28901918551314,
+      "CV_Accuracy": 94.91735495054552,
+      "Inference_Time_ms": 0.5946779251098633,
+      "Train_Time_s": 2.569349527359009
+    },
+    {
+      "Model": "LogisticRegression_Original_Config2",
+      "Test_Accuracy": 94.0068493150685,
+      "Test_F1_Macro": 76.38455582673149,
+      "Test_Precision": 72.2365234258115,
+      "Test_Recall": 81.88585344263218,
+      "CV_Accuracy": 93.73210971754868,
+      "Inference_Time_ms": 0.0025796890258789062,
+      "Train_Time_s": 30.86668586730957
+    },
+    {
+      "Model": "LogisticRegression_Original_Config3",
+      "Test_Accuracy": 93.83561643835617,
+      "Test_F1_Macro": 76.1455733854867,
+      "Test_Precision": 71.75873015873015,
+      "Test_Recall": 82.12464246328072,
+      "CV_Accuracy": 93.58934434587539,
+      "Inference_Time_ms": 0.002505779266357422,
+      "Train_Time_s": 33.05596876144409
+    },
+    {
+      "Model": "LogisticRegression_SMOTE_Config2",
+      "Test_Accuracy": 93.94977168949772,
+      "Test_F1_Macro": 74.87405156687778,
+      "Test_Precision": 71.29308928417291,
+      "Test_Recall": 80.17081167733315,
+      "CV_Accuracy": 93.80300786494654,
+      "Inference_Time_ms": 0.0024771690368652344,
+      "Train_Time_s": 37.63676834106445
+    },
+    {
+      "Model": "LogisticRegression_SMOTE_Config3",
+      "Test_Accuracy": 94.12100456621005,
+      "Test_F1_Macro": 74.7934875972647,
+      "Test_Precision": 71.7293292883844,
+      "Test_Recall": 79.26644571373541,
+      "CV_Accuracy": 93.97794622111284,
+      "Inference_Time_ms": 0.0029897689819335938,
+      "Train_Time_s": 85.28578066825867
+    },
+    {
+      "Model": "LogisticRegression_Original_Config1",
+      "Test_Accuracy": 92.40867579908677,
+      "Test_F1_Macro": 74.14410631368317,
+      "Test_Precision": 68.84602757384414,
+      "Test_Recall": 82.11338999301186,
+      "CV_Accuracy": 91.97601713062099,
+      "Inference_Time_ms": 0.0026273727416992188,
+      "Train_Time_s": 16.70270538330078
+    },
+    {
+      "Model": "LogisticRegression_SMOTE_Config1",
+      "Test_Accuracy": 93.09360730593608,
+      "Test_F1_Macro": 73.49720109632457,
+      "Test_Precision": 69.07709937121702,
+      "Test_Recall": 79.90836012853485,
+      "CV_Accuracy": 93.06616555258536,
+      "Inference_Time_ms": 0.002491474151611328,
+      "Train_Time_s": 23.82279133796692
+    }
+  ]
+}
