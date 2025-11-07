@@ -1,0 +1,41 @@
+# Systemd service file for Smart Irrigation Dashboard
+# Installation: sudo cp irrigation-dashboard.service /etc/systemd/system/
+# Enable: sudo systemctl enable irrigation-dashboard
+# Start: sudo systemctl start irrigation-dashboard
+
+[Unit]
+Description=Smart Irrigation Dashboard - Edge ML Web Application
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/irrigation-dashboard/web
+
+# Environment variables
+Environment="FLASK_ENV=production"
+Environment="FLASK_APP=app.py"
+Environment="PYTHONUNBUFFERED=1"
+
+# Virtual environment Python
+ExecStart=/home/pi/irrigation-dashboard/.venv/bin/python app.py
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=irrigation-dashboard
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

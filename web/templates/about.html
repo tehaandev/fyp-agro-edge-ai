@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}About - Smart Irrigation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="mb-4">
+            <i class="bi bi-info-circle"></i> About This Project
+        </h1>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>Edge-Based ML for Smart Irrigation</h3>
+                <p class="lead">
+                    Real-time decision support system for small-scale farms using lightweight machine learning models
+                    optimized for Raspberry Pi 4B deployment.
+                </p>
+
+                <hr>
+
+                <h5><i class="bi bi-bullseye"></i> Project Goals</h5>
+                <ul>
+                    <li>Enable offline ML inference on resource-constrained edge devices</li>
+                    <li>Provide smart irrigation recommendations based on sensor data</li>
+                    <li>Detect plant diseases from leaf images</li>
+                    <li>Operate completely offline - no internet required</li>
+                    <li>Target smallholder farms in Sri Lanka (&lt;2 hectares)</li>
+                </ul>
+
+                <hr>
+
+                <h5><i class="bi bi-gear"></i> Technical Specifications</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Hardware:</strong>
+                        <ul>
+                            <li>Raspberry Pi 4B (4GB RAM)</li>
+                            <li>DHT11 sensor (temperature, humidity)</li>
+                            <li>Soil moisture sensor</li>
+                            <li>Pi Camera (optional)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Models:</strong>
+                        <ul>
+                            <li>Irrigation: RandomForest (50KB, 97.89% acc)</li>
+                            <li>Disease: MobileNetV2 TFLite (9.1MB, 98% acc)</li>
+                            <li>Total inference: &lt;200ms</li>
+                            <li>Power consumption: &lt;5W</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h5><i class="bi bi-cpu"></i> ML Pipeline</h5>
+                <ol>
+                    <li><strong>Data Collection:</strong> Hourly sensor readings (temp, humidity, soil moisture)</li>
+                    <li><strong>Feature Engineering:</strong> 37 features (rolling stats, change rates, time features)</li>
+                    <li><strong>Model Training:</strong> Jupyter notebooks with automated logging</li>
+                    <li><strong>Edge Deployment:</strong> TFLite and pickle models for offline inference</li>
+                    <li><strong>Decision Support:</strong> Flask web interface for farmers</li>
+                </ol>
+
+                <hr>
+
+                <h5><i class="bi bi-people"></i> Target Users</h5>
+                <p>
+                    Smallholder farmers in Sri Lanka with limited access to:
+                </p>
+                <ul>
+                    <li>Reliable internet connectivity</li>
+                    <li>Technical expertise</li>
+                    <li>Agricultural extension services</li>
+                </ul>
+
+                <hr>
+
+                <div class="alert alert-success" role="alert">
+                    <h6><i class="bi bi-check-circle"></i> Performance Targets (Achieved)</h6>
+                    <ul class="mb-0">
+                        <li>✅ Inference time: &lt;1 second</li>
+                        <li>✅ Model size: &lt;50MB per model</li>
+                        <li>✅ Accuracy: &gt;95%</li>
+                        <li>✅ Power: &lt;5W</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-code-slash"></i> Technology Stack
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Backend:</strong>
+                        <ul>
+                            <li>Flask</li>
+                            <li>SQLAlchemy</li>
+                            <li>TensorFlow Lite</li>
+                            <li>scikit-learn</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Frontend:</strong>
+                        <ul>
+                            <li>Bootstrap 5</li>
+                            <li>Chart.js</li>
+                            <li>Vanilla JavaScript</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Data Science:</strong>
+                        <ul>
+                            <li>Jupyter Notebooks</li>
+                            <li>Pandas/NumPy</li>
+                            <li>OpenCV</li>
+                            <li>SMOTE (imbalanced data)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                <i class="bi bi-mortarboard"></i> Final Year Project 2025<br>
+                Computer Science | University of [Your University]
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

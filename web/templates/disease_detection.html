@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Disease Detection - Smart Irrigation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-heart-pulse"></i> Plant Disease Detection
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Upload Form -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-camera"></i> Upload Leaf Image
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('main.upload_leaf') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="leaf_image" class="form-label">Select Image</label>
+                        <input type="file"
+                               class="form-control"
+                               id="leaf_image"
+                               name="leaf_image"
+                               accept="image/png, image/jpeg, image/jpg"
+                               required
+                               onchange="previewImage(event)">
+                        <div class="form-text">
+                            Accepted formats: PNG, JPG, JPEG (max 16MB)
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="mb-3" id="preview-container" style="display: none;">
+                        <label class="form-label">Preview</label>
+                        <img id="image-preview" class="img-fluid rounded border" alt="Preview">
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="bi bi-upload"></i> Analyze Leaf
+                    </button>
+                </form>
+
+                <hr>
+
+                <div class="alert alert-info" role="alert">
+                    <h6><i class="bi bi-info-circle"></i> Instructions:</h6>
+                    <ul class="mb-0">
+                        <li>Capture a clear image of the leaf</li>
+                        <li>Ensure good lighting (natural light preferred)</li>
+                        <li>Focus on diseased areas if visible</li>
+                        <li>Avoid blurry or dark images</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Detections -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-clock-history"></i> Recent Detections
+            </div>
+            <div class="card-body">
+                {% if recent_detections %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Result</th>
+                                    <th>Confidence</th>
+                                    <th>Image</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for detection in recent_detections %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ detection.timestamp.strftime('%m/%d %H:%M') }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if detection.prediction == 'Healthy' else 'danger' }}">
+                                                {{ detection.prediction }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>{{ "%.1f"|format(detection.confidence * 100) }}%</small>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('static', filename=detection.image_path) }}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center my-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i><br>
+                        No detections yet. Upload a leaf image to get started!
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+{% if recent_detections %}
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-pie-chart"></i> Detection Statistics
+            </div>
+            <div class="card-body">
+                {% set healthy_count = recent_detections | selectattr('prediction', 'equalto', 'Healthy') | list | length %}
+                {% set diseased_count = recent_detections | selectattr('prediction', 'equalto', 'Diseased') | list | length %}
+                {% set total = recent_detections | length %}
+
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h3>{{ healthy_count }}</h3>
+                                <p class="mb-0">Healthy</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body">
+                                <h3>{{ diseased_count }}</h3>
+                                <p class="mb-0">Diseased</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <canvas id="diseaseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-speedometer"></i> Model Performance
+            </div>
+            <div class="card-body">
+                {% if recent_detections %}
+                    {% set avg_confidence = (recent_detections | map(attribute='confidence') | sum) / (recent_detections | length) %}
+                    {% set avg_time = (recent_detections | map(attribute='inference_time_ms') | sum) / (recent_detections | length) if recent_detections[0].inference_time_ms else 0 %}
+
+                    <div class="mb-3">
+                        <strong>Average Confidence:</strong>
+                        <div class="progress mt-1" style="height: 25px;">
+                            <div class="progress-bar bg-info"
+                                 style="width: {{ avg_confidence * 100 }}%">
+                                {{ "%.1f"|format(avg_confidence * 100) }}%
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if avg_time > 0 %}
+                    <div class="mb-3">
+                        <strong>Average Inference Time:</strong>
+                        <p class="h5 text-info">{{ "%.1f"|format(avg_time) }} ms</p>
+                        <small class="text-muted">
+                            <i class="bi bi-check-circle"></i>
+                            Edge-compatible (&lt;1s target)
+                        </small>
+                    </div>
+                    {% endif %}
+
+                    <div>
+                        <strong>Total Scans:</strong>
+                        <p class="h5">{{ total }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Image preview
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('image-preview').src = e.target.result;
+            document.getElementById('preview-container').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Disease statistics chart
+{% if recent_detections %}
+const ctx = document.getElementById('diseaseChart');
+if (ctx) {
+    {% set healthy_count = recent_detections | selectattr('prediction', 'equalto', 'Healthy') | list | length %}
+    {% set diseased_count = recent_detections | selectattr('prediction', 'equalto', 'Diseased') | list | length %}
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Healthy', 'Diseased'],
+            datasets: [{
+                data: [{{ healthy_count }}, {{ diseased_count }}],
+                backgroundColor: ['#28a745', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+{% endif %}
+</script>
+{% endblock %}

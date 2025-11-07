@@ -1,0 +1,32 @@
+# Flask Web Application Requirements
+# For Edge-Based Smart Irrigation Dashboard
+
+# Web Framework
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Werkzeug==3.0.1
+
+# Database
+SQLAlchemy==2.0.23
+
+# Machine Learning
+tensorflow==2.15.0  # For TFLite inference
+scikit-learn==1.3.2
+numpy==1.24.3
+pandas==2.1.4
+
+# Image Processing
+Pillow==10.1.0
+opencv-python==4.8.1.78
+
+# Utilities
+python-dotenv==1.0.0
+
+# Optional: Real sensor support (for Raspberry Pi)
+# Uncomment when deploying to Raspberry Pi
+# Adafruit-DHT==1.4.0
+# RPi.GPIO==0.7.1
+# spidev==3.6  # For ADC (soil moisture sensor)
+
+# Development tools (optional)
+# flask-cors==4.0.0

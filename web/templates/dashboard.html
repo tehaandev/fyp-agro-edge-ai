@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Irrigation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Dashboard
+            <button class="btn btn-outline-primary btn-sm float-end" onclick="refreshDashboard()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </h1>
+    </div>
+</div>
+
+<!-- Status Cards -->
+<div class="row mb-4">
+    <!-- Sensor Status -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-info">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-thermometer-half text-danger"></i> Sensor Status
+                </h5>
+                {% if latest_sensor %}
+                    <div class="sensor-reading">
+                        <div class="mb-2">
+                            <strong>Temperature:</strong>
+                            <span class="badge bg-danger">{{ latest_sensor.temperature }}°C</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Humidity:</strong>
+                            <span class="badge bg-primary">{{ latest_sensor.humidity }}%</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Soil Moisture:</strong>
+                            <span class="badge bg-success">{{ latest_sensor.soil_moisture }}%</span>
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i> {{ latest_sensor.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                        </small>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No sensor data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Irrigation Recommendation -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-success">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-droplet-fill text-primary"></i> Irrigation Status
+                </h5>
+                {% if latest_irrigation %}
+                    {% set decision_color = 'success' if latest_irrigation.decision == 'No_Irrigation' else 'warning' %}
+                    {% set decision_icon = 'check-circle' if latest_irrigation.decision == 'No_Irrigation' else 'exclamation-triangle' %}
+
+                    <div class="irrigation-status">
+                        <div class="alert alert-{{ decision_color }} mb-2" role="alert">
+                            <i class="bi bi-{{ decision_icon }}"></i>
+                            <strong>{{ latest_irrigation.decision.replace('_', ' ') }}</strong>
+                        </div>
+
+                        {% if latest_irrigation.duration > 0 %}
+                            <p class="mb-1">
+                                <strong>Duration:</strong> {{ latest_irrigation.duration }} minutes
+                            </p>
+                        {% endif %}
+
+                        {% if latest_irrigation.confidence %}
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar bg-{{ decision_color }}"
+                                     style="width: {{ latest_irrigation.confidence * 100 }}%">
+                                    {{ "%.1f"|format(latest_irrigation.confidence * 100) }}% confidence
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i> {{ latest_irrigation.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                        </small>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No irrigation decision yet</p>
+                {% endif %}
+
+                <button class="btn btn-success w-100 mt-3" onclick="getNewRecommendation()">
+                    <i class="bi bi-lightning-charge"></i> Get New Recommendation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disease Detection Quick Link -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-warning">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-heart-pulse text-danger"></i> Disease Detection
+                </h5>
+
+                {% if recent_diseases %}
+                    <p class="mb-2">Recent scans: <strong>{{ recent_diseases|length }}</strong></p>
+
+                    <div class="list-group list-group-flush">
+                        {% for disease in recent_diseases[:3] %}
+                            <div class="list-group-item px-0">
+                                <span class="badge bg-{{ 'success' if disease.prediction == 'Healthy' else 'danger' }}">
+                                    {{ disease.prediction }}
+                                </span>
+                                <small class="text-muted">
+                                    {{ "%.0f"|format(disease.confidence * 100) }}%
+                                </small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No disease scans yet</p>
+                {% endif %}
+
+                <a href="{{ url_for('main.disease_detection') }}" class="btn btn-warning w-100 mt-3">
+                    <i class="bi bi-camera"></i> Scan Leaf
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row">
+    <!-- Sensor History Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-graph-up"></i> Sensor History (24 Hours)
+            </div>
+            <div class="card-body">
+                <canvas id="sensorChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Soil Moisture Gauge -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-moisture"></i> Soil Moisture Level
+            </div>
+            <div class="card-body text-center">
+                {% if latest_sensor %}
+                    <div class="moisture-gauge">
+                        <h1 class="display-3 mb-0">{{ latest_sensor.soil_moisture|int }}%</h1>
+                        {% if latest_sensor.soil_moisture < 30 %}
+                            <p class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Very Dry</p>
+                        {% elif latest_sensor.soil_moisture < 50 %}
+                            <p class="text-warning"><i class="bi bi-dash-circle-fill"></i> Moderately Dry</p>
+                        {% else %}
+                            <p class="text-success"><i class="bi bi-check-circle-fill"></i> Good</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="progress mt-3" style="height: 30px;">
+                        {% set moisture_color = 'danger' if latest_sensor.soil_moisture < 30 else 'warning' if latest_sensor.soil_moisture < 50 else 'success' %}
+                        <div class="progress-bar bg-{{ moisture_color }}"
+                             style="width: {{ latest_sensor.soil_moisture }}%">
+                            {{ latest_sensor.soil_moisture|int }}%
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No data</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data for JavaScript -->
+<script id="sensor-data" type="application/json">
+    {{ sensor_history | map(attribute='to_dict') | list | tojson | safe }}
+</script>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
