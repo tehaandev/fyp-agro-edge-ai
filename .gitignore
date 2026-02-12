@@ -1,0 +1,19 @@
+# python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+
+# data
+*.csv
+data/
+*.jpg
+*.JPG
+
+# models
+models
+*.h5
+*.tflite
+
+temp_augmented_healthy

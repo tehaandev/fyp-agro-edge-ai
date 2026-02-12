@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-08-28T11:01:08.790721",
+  "model_type": "DecisionTreeClassifier",
+  "hyperparameters": {
+    "criterion": "gini",
+    "splitter": "best",
+    "max_depth": null,
+    "min_samples_split": 2,
+    "min_samples_leaf": 1,
+    "min_weight_fraction_leaf": 0.0,
+    "max_features": null,
+    "random_state": null,
+    "max_leaf_nodes": null,
+    "min_impurity_decrease": 0.0,
+    "class_weight": null
+  },
+  "dataset_info": {
+    "data_file": "irrigation.csv",
+    "features": [
+      "Soil Moisture",
+      "Temperature",
+      "Air Humidity"
+    ],
+    "target": "Pump Data",
+    "total_samples": 3000,
+    "train_samples": 2400,
+    "test_samples": 600,
+    "train_split": 0.8,
+    "test_split": 0.2,
+    "stratified": true,
+    "random_state": 42,
+    "train_class_distribution": {
+      "1": 1255,
+      "0": 1145
+    },
+    "test_class_distribution": {
+      "1": 314,
+      "0": 286
+    }
+  },
+  "training_time": {
+    "total_seconds": 0.030086278915405273,
+    "total_minutes": 0.0005014379819234212,
+    "total_hours": 8.357299698723688e-06,
+    "formatted": "00h 00m 00s"
+  },
+  "results": {
+    "accuracy": 0.9983333333333333,
+    "f1_score": 0.9984051036682615,
+    "precision": 1.0,
+    "recall": 0.9968152866242038,
+    "tree_depth": 4,
+    "n_leaves": 
